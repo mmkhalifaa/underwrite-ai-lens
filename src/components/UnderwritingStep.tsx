@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, Clock, ArrowRight, ExternalLink } from 'lucide-react';
+import { CheckCircle, Clock, ArrowRight, ExternalLink, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface UnderwritingStepProps {
@@ -17,9 +17,12 @@ interface UnderwritingStepProps {
   };
   isCompleted: boolean;
   isCurrent: boolean;
+  isProcessing: boolean;
   isPending: boolean;
   onSelect: () => void;
   isSelected: boolean;
+  onStart: () => void;
+  stepProgress: number;
 }
 
 const stepOutputs = {
@@ -53,35 +56,34 @@ const UnderwritingStep = ({
   step, 
   isCompleted, 
   isCurrent, 
+  isProcessing,
   isPending, 
   onSelect, 
-  isSelected 
+  isSelected,
+  onStart,
+  stepProgress
 }: UnderwritingStepProps) => {
   const [currentSubstep, setCurrentSubstep] = useState(0);
-  const [substepProgress, setSubstepProgress] = useState(0);
   const Icon = step.icon;
 
   useEffect(() => {
-    if (isCurrent && currentSubstep < step.substeps.length) {
-      const substepDuration = step.duration / step.substeps.length;
-      const timer = setTimeout(() => {
-        setCurrentSubstep(prev => prev + 1);
-        setSubstepProgress(((currentSubstep + 1) / step.substeps.length) * 100);
-      }, substepDuration);
-
-      return () => clearTimeout(timer);
+    if (isProcessing) {
+      const substepIndex = Math.floor((stepProgress / 100) * step.substeps.length);
+      setCurrentSubstep(Math.min(substepIndex, step.substeps.length - 1));
     }
-  }, [isCurrent, currentSubstep, step.substeps.length, step.duration]);
+  }, [isProcessing, stepProgress, step.substeps.length]);
 
   const getStatusColor = () => {
     if (isCompleted) return 'bg-green-50 border-green-200';
-    if (isCurrent) return 'bg-blue-50 border-blue-200';
+    if (isProcessing) return 'bg-blue-50 border-blue-200';
+    if (isCurrent) return 'bg-yellow-50 border-yellow-200';
     return 'bg-gray-50 border-gray-200';
   };
 
   const getIconColor = () => {
     if (isCompleted) return 'text-green-600';
-    if (isCurrent) return 'text-blue-600';
+    if (isProcessing) return 'text-blue-600';
+    if (isCurrent) return 'text-yellow-600';
     return 'text-gray-400';
   };
 
@@ -95,7 +97,7 @@ const UnderwritingStep = ({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className={`p-2 rounded-lg ${isCompleted ? 'bg-green-100' : isCurrent ? 'bg-blue-100' : 'bg-gray-100'}`}>
+            <div className={`p-2 rounded-lg ${isCompleted ? 'bg-green-100' : isProcessing ? 'bg-blue-100' : isCurrent ? 'bg-yellow-100' : 'bg-gray-100'}`}>
               {isCompleted ? (
                 <CheckCircle className="w-5 h-5 text-green-600" />
               ) : (
@@ -113,11 +115,24 @@ const UnderwritingStep = ({
                 Complete
               </Badge>
             )}
-            {isCurrent && (
+            {isProcessing && (
               <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                 <Clock className="w-3 h-3 mr-1" />
                 Processing
               </Badge>
+            )}
+            {isCurrent && !isProcessing && (
+              <Button 
+                size="sm" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onStart();
+                }}
+                className="bg-yellow-600 hover:bg-yellow-700 text-white"
+              >
+                <Play className="w-3 h-3 mr-1" />
+                Start
+              </Button>
             )}
             {isPending && (
               <Badge variant="outline" className="text-gray-500">
@@ -130,7 +145,7 @@ const UnderwritingStep = ({
 
       <CardContent>
         {/* Current Processing Steps */}
-        {isCurrent && (
+        {isProcessing && (
           <div className="mb-4">
             <div className="space-y-2">
               {step.substeps.map((substep, index) => (
@@ -147,7 +162,7 @@ const UnderwritingStep = ({
                 </div>
               ))}
             </div>
-            <Progress value={substepProgress} className="mt-3 h-1" />
+            <Progress value={stepProgress} className="mt-3 h-1" />
           </div>
         )}
 

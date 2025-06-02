@@ -80,22 +80,37 @@ const UnderwritingFlow = ({ data, onBack }: UnderwritingFlowProps) => {
   const [selectedStep, setSelectedStep] = useState<string | null>(null);
   const [isComplete, setIsComplete] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [stepProcessing, setStepProcessing] = useState<string | null>(null);
+  const [stepProgress, setStepProgress] = useState(0);
 
-  useEffect(() => {
-    if (currentStepIndex < underwritingSteps.length) {
-      const currentStep = underwritingSteps[currentStepIndex];
-      const timer = setTimeout(() => {
-        setCompletedSteps(prev => [...prev, currentStep.id]);
-        setCurrentStepIndex(prev => prev + 1);
-        setProgress(((currentStepIndex + 1) / underwritingSteps.length) * 100);
-      }, currentStep.duration);
-
-      return () => clearTimeout(timer);
-    } else if (currentStepIndex === underwritingSteps.length) {
-      setIsComplete(true);
-      setProgress(100);
-    }
-  }, [currentStepIndex]);
+  const handleStartStep = (stepId: string) => {
+    const stepIndex = underwritingSteps.findIndex(step => step.id === stepId);
+    const step = underwritingSteps[stepIndex];
+    
+    setStepProcessing(stepId);
+    setStepProgress(0);
+    
+    // Simulate step processing with progress
+    const progressInterval = setInterval(() => {
+      setStepProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(progressInterval);
+          setStepProcessing(null);
+          setCompletedSteps(prev => [...prev, stepId]);
+          setProgress(((stepIndex + 1) / underwritingSteps.length) * 100);
+          
+          // If this was the last step, mark as complete
+          if (stepIndex === underwritingSteps.length - 1) {
+            setIsComplete(true);
+          } else {
+            setCurrentStepIndex(stepIndex + 1);
+          }
+          return 100;
+        }
+        return prev + 2;
+      });
+    }, step.duration / 50);
+  };
 
   if (isComplete) {
     return <FinalSummary data={data} onBack={onBack} />;
@@ -121,7 +136,7 @@ const UnderwritingFlow = ({ data, onBack }: UnderwritingFlowProps) => {
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <div className="text-sm font-medium text-gray-900">{Math.round(progress)}% Complete</div>
-                <div className="text-xs text-gray-500">Step {Math.min(currentStepIndex + 1, underwritingSteps.length)} of {underwritingSteps.length}</div>
+                <div className="text-xs text-gray-500">Step {completedSteps.length + (stepProcessing ? 1 : 0)} of {underwritingSteps.length}</div>
               </div>
               <div className="w-24">
                 <Progress value={progress} className="h-2" />
@@ -138,7 +153,8 @@ const UnderwritingFlow = ({ data, onBack }: UnderwritingFlowProps) => {
             <div className="space-y-4">
               {underwritingSteps.map((step, index) => {
                 const isCompleted = completedSteps.includes(step.id);
-                const isCurrent = index === currentStepIndex;
+                const isCurrent = index === currentStepIndex && !stepProcessing;
+                const isProcessing = stepProcessing === step.id;
                 const isPending = index > currentStepIndex;
 
                 return (
@@ -147,9 +163,12 @@ const UnderwritingFlow = ({ data, onBack }: UnderwritingFlowProps) => {
                     step={step}
                     isCompleted={isCompleted}
                     isCurrent={isCurrent}
+                    isProcessing={isProcessing}
                     isPending={isPending}
                     onSelect={() => setSelectedStep(step.id)}
                     isSelected={selectedStep === step.id}
+                    onStart={() => handleStartStep(step.id)}
+                    stepProgress={isProcessing ? stepProgress : 0}
                   />
                 );
               })}
