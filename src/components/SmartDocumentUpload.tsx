@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, FileText, CheckCircle, X, Move } from 'lucide-react';
+import { Upload, FileText, CheckCircle, X, Move, Clock, Loader2 } from 'lucide-react';
 
 export interface CategorizedDocument {
   file: File;
@@ -16,6 +16,13 @@ export interface CategorizedDocument {
 interface SmartDocumentUploadProps {
   onDocumentsChange: (documents: CategorizedDocument[]) => void;
   documents: CategorizedDocument[];
+}
+
+interface UploadingFile {
+  file: File;
+  id: string;
+  progress: number;
+  category: 'pfs' | 'credit' | 'asset';
 }
 
 const documentCategories = {
@@ -41,6 +48,7 @@ const documentCategories = {
 
 const SmartDocumentUpload = ({ onDocumentsChange, documents }: SmartDocumentUploadProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
 
   const categorizeDocument = (fileName: string): 'pfs' | 'credit' | 'asset' => {
     const lowerFileName = fileName.toLowerCase();
@@ -59,20 +67,56 @@ const SmartDocumentUpload = ({ onDocumentsChange, documents }: SmartDocumentUplo
     return 'pfs';
   };
 
-  const addDocuments = useCallback((files: FileList | File[]) => {
-    const newDocuments: CategorizedDocument[] = [];
+  const simulateUpload = (uploadingFile: UploadingFile): Promise<void> => {
+    return new Promise((resolve) => {
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 15 + 5; // Random progress between 5-20%
+        
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+          
+          // Remove from uploading files and add to completed documents
+          setUploadingFiles(prev => prev.filter(f => f.id !== uploadingFile.id));
+          
+          const newDoc: CategorizedDocument = {
+            file: uploadingFile.file,
+            category: uploadingFile.category,
+            id: uploadingFile.id
+          };
+          
+          onDocumentsChange([...documents, newDoc]);
+          resolve();
+        } else {
+          setUploadingFiles(prev => 
+            prev.map(f => f.id === uploadingFile.id ? { ...f, progress } : f)
+          );
+        }
+      }, 200 + Math.random() * 300); // Random interval between 200-500ms
+    });
+  };
+
+  const addDocuments = useCallback(async (files: FileList | File[]) => {
+    const newUploadingFiles: UploadingFile[] = [];
     
     Array.from(files).forEach(file => {
       const category = categorizeDocument(file.name);
-      const newDoc: CategorizedDocument = {
+      const uploadingFile: UploadingFile = {
         file,
         category,
-        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        progress: 0
       };
-      newDocuments.push(newDoc);
+      newUploadingFiles.push(uploadingFile);
     });
     
-    onDocumentsChange([...documents, ...newDocuments]);
+    setUploadingFiles(prev => [...prev, ...newUploadingFiles]);
+    
+    // Start upload simulation for each file
+    newUploadingFiles.forEach(uploadingFile => {
+      simulateUpload(uploadingFile);
+    });
   }, [documents, onDocumentsChange]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -153,6 +197,40 @@ const SmartDocumentUpload = ({ onDocumentsChange, documents }: SmartDocumentUplo
               className="max-w-xs mx-auto"
             />
           </div>
+
+          {/* Upload Progress Section */}
+          {uploadingFiles.length > 0 && (
+            <div className="mt-6 space-y-3">
+              <div className="text-sm font-medium text-gray-700">Uploading Documents:</div>
+              {uploadingFiles.map(uploadingFile => (
+                <div key={uploadingFile.id} className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <div className="flex items-center space-x-3">
+                    <Loader2 className="w-4 h-4 text-blue-600 animate-spin flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-gray-900 truncate">
+                        {uploadingFile.file.name}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {(uploadingFile.file.size / 1024 / 1024).toFixed(2)} MB • 
+                        Categorizing as {documentCategories[uploadingFile.category].label}
+                      </div>
+                    </div>
+                    <div className="text-sm text-blue-600 font-medium">
+                      {Math.round(uploadingFile.progress)}%
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <div className="bg-blue-200 rounded-full h-1.5">
+                      <div 
+                        className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadingFile.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
