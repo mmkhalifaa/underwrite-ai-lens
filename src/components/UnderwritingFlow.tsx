@@ -9,6 +9,7 @@ import { ArrowLeft, CheckCircle, Clock, AlertCircle, FileText, Calculator, Shiel
 import UnderwritingStep from './UnderwritingStep';
 import ExplainabilityPanel from './ExplainabilityPanel';
 import FinalSummary from './FinalSummary';
+import DocumentViewer from './DocumentViewer';
 
 interface UnderwritingFlowProps {
   data: {
@@ -82,6 +83,8 @@ const UnderwritingFlow = ({ data, onBack }: UnderwritingFlowProps) => {
   const [progress, setProgress] = useState(0);
   const [stepProcessing, setStepProcessing] = useState<string | null>(null);
   const [stepProgress, setStepProgress] = useState(0);
+  const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
+  const [viewingDocument, setViewingDocument] = useState<string | null>(null);
 
   const handleStartStep = (stepId: string) => {
     const stepIndex = underwritingSteps.findIndex(step => step.id === stepId);
@@ -112,6 +115,16 @@ const UnderwritingFlow = ({ data, onBack }: UnderwritingFlowProps) => {
     }, step.duration / 50);
   };
 
+  const handleViewDocument = (stepId: string) => {
+    setViewingDocument(stepId);
+    setDocumentViewerOpen(true);
+  };
+
+  const handleCloseDocumentViewer = () => {
+    setDocumentViewerOpen(false);
+    setViewingDocument(null);
+  };
+
   if (isComplete) {
     return <FinalSummary data={data} onBack={onBack} />;
   }
@@ -119,7 +132,7 @@ const UnderwritingFlow = ({ data, onBack }: UnderwritingFlowProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -147,9 +160,9 @@ const UnderwritingFlow = ({ data, onBack }: UnderwritingFlowProps) => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className={`grid gap-8 transition-all duration-300 ${documentViewerOpen ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 lg:grid-cols-4'}`}>
           {/* Main Timeline */}
-          <div className="lg:col-span-3">
+          <div className={documentViewerOpen ? 'lg:col-span-1' : 'lg:col-span-3'}>
             <div className="space-y-4">
               {underwritingSteps.map((step, index) => {
                 const isCompleted = completedSteps.includes(step.id);
@@ -169,22 +182,32 @@ const UnderwritingFlow = ({ data, onBack }: UnderwritingFlowProps) => {
                     isSelected={selectedStep === step.id}
                     onStart={() => handleStartStep(step.id)}
                     stepProgress={isProcessing ? stepProgress : 0}
+                    onViewDocument={handleViewDocument}
                   />
                 );
               })}
             </div>
           </div>
 
-          {/* Explainability Panel */}
-          <div className="lg:col-span-1">
-            <ExplainabilityPanel 
-              selectedStep={selectedStep} 
-              completedSteps={completedSteps}
-              currentStep={currentStepIndex < underwritingSteps.length ? underwritingSteps[currentStepIndex] : null}
-            />
-          </div>
+          {/* Explainability Panel - Only show when document viewer is closed */}
+          {!documentViewerOpen && (
+            <div className="lg:col-span-1">
+              <ExplainabilityPanel 
+                selectedStep={selectedStep} 
+                completedSteps={completedSteps}
+                currentStep={currentStepIndex < underwritingSteps.length ? underwritingSteps[currentStepIndex] : null}
+              />
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Document Viewer */}
+      <DocumentViewer
+        stepId={viewingDocument || ''}
+        isOpen={documentViewerOpen}
+        onClose={handleCloseDocumentViewer}
+      />
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, Clock, ArrowRight, ExternalLink, Play } from 'lucide-react';
+import { CheckCircle, Clock, ArrowRight, ExternalLink, Play, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface UnderwritingStepProps {
@@ -23,6 +23,7 @@ interface UnderwritingStepProps {
   isSelected: boolean;
   onStart: () => void;
   stepProgress: number;
+  onViewDocument: (stepId: string) => void;
 }
 
 const stepOutputs = {
@@ -61,7 +62,8 @@ const UnderwritingStep = ({
   onSelect, 
   isSelected,
   onStart,
-  stepProgress
+  stepProgress,
+  onViewDocument
 }: UnderwritingStepProps) => {
   const [currentSubstep, setCurrentSubstep] = useState(0);
   const Icon = step.icon;
@@ -74,10 +76,10 @@ const UnderwritingStep = ({
   }, [isProcessing, stepProgress, step.substeps.length]);
 
   const getStatusColor = () => {
-    if (isCompleted) return 'bg-green-50 border-green-200';
-    if (isProcessing) return 'bg-blue-50 border-blue-200';
-    if (isCurrent) return 'bg-yellow-50 border-yellow-200';
-    return 'bg-gray-50 border-gray-200';
+    if (isCompleted) return 'bg-green-50 border-green-200 hover:bg-green-100';
+    if (isProcessing) return 'bg-blue-50 border-blue-200 hover:bg-blue-100';
+    if (isCurrent) return 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100';
+    return 'bg-gray-50 border-gray-200 hover:bg-gray-100';
   };
 
   const getIconColor = () => {
@@ -111,9 +113,23 @@ const UnderwritingStep = ({
           </div>
           <div className="flex items-center space-x-2">
             {isCompleted && (
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
-                Complete
-              </Badge>
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewDocument(step.id);
+                  }}
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                >
+                  <Eye className="w-3 h-3 mr-1" />
+                  View Source
+                </Button>
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  Complete
+                </Badge>
+              </>
             )}
             {isProcessing && (
               <Badge variant="secondary" className="bg-blue-100 text-blue-800">
@@ -180,8 +196,16 @@ const UnderwritingStep = ({
               ))}
             </div>
             <div className="flex items-center justify-between mt-3 pt-3 border-t">
-              <span className="text-xs text-gray-500">Source: PFS_Document.pdf, Page 2</span>
-              <Button variant="ghost" size="sm" className="text-xs">
+              <span className="text-xs text-gray-500">Source: {step.id.includes('pfs') ? 'PFS_Document.pdf' : step.id.includes('credit') ? 'Credit_Report.pdf' : step.id.includes('mortgage') ? 'Income_Verification.pdf' : 'Policy_Guidelines.pdf'}, Page 2</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewDocument(step.id);
+                }}
+              >
                 <ExternalLink className="w-3 h-3 mr-1" />
                 View Source
               </Button>
