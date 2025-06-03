@@ -160,9 +160,9 @@ const FinalSummary = ({ data, onBack }: FinalSummaryProps) => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-xl text-green-800">APPROVE WITH CONDITIONS</CardTitle>
+                <CardTitle className="text-xl text-green-800">MEETS ALL CRITERIA</CardTitle>
                 <CardDescription className="text-green-600">
-                  Loan meets all primary criteria with minor conditions
+                  All financial metrics and requirements are satisfied
                 </CardDescription>
               </div>
               <div className="text-right">
