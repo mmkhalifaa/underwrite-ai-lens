@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Upload, FileText, Brain, CheckCircle } from 'lucide-react';
 import UnderwritingFlow from '@/components/UnderwritingFlow';
 import { useToast } from '@/hooks/use-toast';
@@ -13,16 +14,16 @@ const Index = () => {
   const [currentScreen, setCurrentScreen] = useState('setup');
   const [underwritingData, setUnderwritingData] = useState({
     productType: '',
-    riskLevel: '',
+    incomeTypes: [] as string[],
     documents: []
   });
   const { toast } = useToast();
 
   const handleStartUnderwriting = () => {
-    if (!underwritingData.productType || !underwritingData.riskLevel) {
+    if (!underwritingData.productType || underwritingData.incomeTypes.length === 0) {
       toast({
         title: "Missing Information",
-        description: "Please select product type and risk level to continue.",
+        description: "Please select product type and at least one income type to continue.",
         variant: "destructive"
       });
       return;
@@ -40,6 +41,15 @@ const Index = () => {
     setUnderwritingData(prev => ({
       ...prev,
       documents: [...prev.documents, ...files.map(file => file.name)]
+    }));
+  };
+
+  const handleIncomeTypeChange = (incomeType: string, checked: boolean) => {
+    setUnderwritingData(prev => ({
+      ...prev,
+      incomeTypes: checked 
+        ? [...prev.incomeTypes, incomeType]
+        : prev.incomeTypes.filter(type => type !== incomeType)
     }));
   };
 
@@ -121,31 +131,40 @@ const Index = () => {
               <Label htmlFor="product-type">Product Type</Label>
               <Select onValueChange={(value) => setUnderwritingData(prev => ({ ...prev, productType: value }))}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select mortgage product" />
+                  <SelectValue placeholder="Select transaction type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="conventional">Conventional Mortgage</SelectItem>
-                  <SelectItem value="jumbo">Jumbo Mortgage</SelectItem>
-                  <SelectItem value="fha">FHA Loan</SelectItem>
-                  <SelectItem value="va">VA Loan</SelectItem>
-                  <SelectItem value="usda">USDA Loan</SelectItem>
+                  <SelectItem value="purchase">Purchase</SelectItem>
+                  <SelectItem value="refinance">Refinance</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Risk Level */}
+            {/* Client Income Type */}
             <div className="space-y-2">
-              <Label htmlFor="risk-level">Risk Assessment Level</Label>
-              <Select onValueChange={(value) => setUnderwritingData(prev => ({ ...prev, riskLevel: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select risk level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low Risk</SelectItem>
-                  <SelectItem value="medium">Medium Risk</SelectItem>
-                  <SelectItem value="high">High Risk</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>Client Income Type</Label>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="annuitized-income"
+                    checked={underwritingData.incomeTypes.includes('annuitized')}
+                    onCheckedChange={(checked) => handleIncomeTypeChange('annuitized', !!checked)}
+                  />
+                  <Label htmlFor="annuitized-income" className="text-sm font-normal">
+                    Annuitized income
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="w2-employment"
+                    checked={underwritingData.incomeTypes.includes('w2-employment')}
+                    onCheckedChange={(checked) => handleIncomeTypeChange('w2-employment', !!checked)}
+                  />
+                  <Label htmlFor="w2-employment" className="text-sm font-normal">
+                    W-2 employment income
+                  </Label>
+                </div>
+              </div>
             </div>
 
             {/* Start Button */}
