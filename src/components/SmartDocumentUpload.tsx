@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -106,7 +105,7 @@ const SmartDocumentUpload = ({ onDocumentsChange, documents }: SmartDocumentUplo
     onDocumentsChange(documents.filter(doc => doc.id !== id));
   }, [documents, onDocumentsChange]);
 
-  const changeCat category = useCallback((id: string, newCategory: 'pfs' | 'credit' | 'asset') => {
+  const changeCategory = useCallback((id: string, newCategory: 'pfs' | 'credit' | 'asset') => {
     onDocumentsChange(documents.map(doc => 
       doc.id === id ? { ...doc, category: newCategory } : doc
     ));
