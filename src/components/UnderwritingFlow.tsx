@@ -14,7 +14,7 @@ interface UnderwritingFlowProps {
   data: {
     productType: string;
     incomeTypes: string[];
-    documents: string[];
+    documents: Array<{ file: File; category: string; id: string }>;
   };
   onBack: () => void;
 }
@@ -142,7 +142,9 @@ const UnderwritingFlow = ({ data, onBack }: UnderwritingFlowProps) => {
               <Separator orientation="vertical" className="h-6" />
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">Underwriting in Progress</h1>
-                <p className="text-sm text-gray-500">{data.productType} • {data.incomeTypes.join(', ')}</p>
+                <p className="text-sm text-gray-500">
+                  {data.productType} • {data.incomeTypes.join(', ')} • {data.documents.length} documents
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
