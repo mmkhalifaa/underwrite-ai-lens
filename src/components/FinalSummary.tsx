@@ -1,8 +1,10 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { CheckCircle, Download, FileText, AlertTriangle, ArrowLeft, Clock } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { CheckCircle, Download, FileText, ArrowLeft, Calculator } from 'lucide-react';
 import { useState } from 'react';
 import CheckerMode from './CheckerMode';
 import { CategorizedDocument } from './SmartDocumentUpload';
@@ -18,12 +20,22 @@ interface FinalSummaryProps {
 
 const FinalSummary = ({ data, onBack }: FinalSummaryProps) => {
   const [showCheckerMode, setShowCheckerMode] = useState(false);
+  const [comments, setComments] = useState<{ [key: string]: string }>({
+    dti: '',
+    liquidity: '',
+    leverage: '',
+    monthlyIncome: '',
+    liquidAssets: '',
+    totalAssets: '',
+    totalLiabilities: '',
+    netWorth: ''
+  });
 
   // Create compatible data structure for CheckerMode
   const checkerModeData = {
     productType: data.productType,
-    riskLevel: data.incomeTypes.join(', '), // Convert incomeTypes array to string for backward compatibility
-    documents: data.documents.map(doc => doc.file.name) // Convert CategorizedDocument[] to string[] for CheckerMode
+    riskLevel: data.incomeTypes.join(', '),
+    documents: data.documents.map(doc => doc.file.name)
   };
 
   if (showCheckerMode) {
@@ -36,26 +48,84 @@ const FinalSummary = ({ data, onBack }: FinalSummaryProps) => {
     );
   }
 
-  const financialData = {
-    netWorth: '$1,247,000',
-    creditScore: '726',
-    monthlyIncome: '$18,500',
-    monthlyObligations: '$3,200',
-    dtiRatio: '28.5%',
-    ltvRatio: '75%',
-    cashReserves: '6.2 months',
-    divorceStatus: 'Married',
-    pfsRecency: '3 months old'
+  const financialMetrics = [
+    {
+      id: 'dti',
+      label: 'Debt-to-Income Ratio (DTI)',
+      value: '28.5%',
+      status: 'good',
+      description: 'Total monthly debt payments divided by gross monthly income'
+    },
+    {
+      id: 'liquidity',
+      label: 'Liquidity Ratio',
+      value: '6.2 months',
+      status: 'good',
+      description: 'Liquid assets available to cover monthly obligations'
+    },
+    {
+      id: 'leverage',
+      label: 'Leverage Ratio',
+      value: '3.2:1',
+      status: 'moderate',
+      description: 'Total debt to net worth ratio'
+    },
+    {
+      id: 'monthlyIncome',
+      label: 'Monthly Income',
+      value: '$18,500',
+      status: 'good',
+      description: 'Verified gross monthly income from all sources'
+    },
+    {
+      id: 'liquidAssets',
+      label: 'Liquid Assets',
+      value: '$114,700',
+      status: 'good',
+      description: 'Cash and easily convertible assets'
+    },
+    {
+      id: 'totalAssets',
+      label: 'Total Assets',
+      value: '$1,580,000',
+      status: 'good',
+      description: 'Sum of all reported assets'
+    },
+    {
+      id: 'totalLiabilities',
+      label: 'Total Liabilities',
+      value: '$333,000',
+      status: 'good',
+      description: 'Sum of all reported debts and obligations'
+    },
+    {
+      id: 'netWorth',
+      label: 'Net Worth',
+      value: '$1,247,000',
+      status: 'good',
+      description: 'Total assets minus total liabilities'
+    }
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'good':
+        return 'bg-green-100 text-green-800';
+      case 'moderate':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'poor':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
   };
 
-  const obligations = [
-    { type: 'Credit Card', amount: '$450', balance: '$12,000' },
-    { type: 'Auto Loan', amount: '$650', balance: '$28,000' },
-    { type: 'Student Loan', amount: '$320', balance: '$15,000' },
-    { type: 'Personal Loan', amount: '$280', balance: '$8,500' },
-    { type: 'HOA Fees', amount: '$350', balance: 'N/A' },
-    { type: 'Insurance', amount: '$1,150', balance: 'N/A' }
-  ];
+  const handleCommentChange = (metricId: string, value: string) => {
+    setComments(prev => ({
+      ...prev,
+      [metricId]: value
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -70,8 +140,8 @@ const FinalSummary = ({ data, onBack }: FinalSummaryProps) => {
               </Button>
               <Separator orientation="vertical" className="h-6" />
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">Underwriting Complete</h1>
-                <p className="text-sm text-gray-500">Analysis finished • Ready for review</p>
+                <h1 className="text-xl font-semibold text-gray-900">Financial Analysis Summary</h1>
+                <p className="text-sm text-gray-500">Key calculations and ratios • Ready for review</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -84,192 +154,73 @@ const FinalSummary = ({ data, onBack }: FinalSummaryProps) => {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* AI Decision */}
-            <Card className="border-green-200 bg-green-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* AI Decision Summary */}
+        <Card className="border-green-200 bg-green-50 mb-8">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-xl text-green-800">APPROVE WITH CONDITIONS</CardTitle>
+                <CardDescription className="text-green-600">
+                  Loan meets all primary criteria with minor conditions
+                </CardDescription>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-green-600">94%</div>
+                <div className="text-sm text-green-600">Confidence</div>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Financial Metrics Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {financialMetrics.map((metric) => (
+            <Card key={metric.id} className="h-full">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-xl text-green-800">APPROVE WITH CONDITIONS</CardTitle>
-                    <CardDescription className="text-green-600">
-                      Loan meets all primary criteria with minor conditions
-                    </CardDescription>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-green-600">94%</div>
-                    <div className="text-sm text-green-600">Confidence</div>
-                  </div>
+                  <CardTitle className="text-lg flex items-center space-x-2">
+                    <Calculator className="w-5 h-5 text-blue-600" />
+                    <span>{metric.label}</span>
+                  </CardTitle>
+                  <Badge className={getStatusColor(metric.status)}>
+                    {metric.status}
+                  </Badge>
                 </div>
+                <CardDescription>{metric.description}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="bg-white rounded-lg p-4 border border-green-200">
-                  <h4 className="font-medium text-gray-900 mb-2">Recommended Conditions:</h4>
-                  <ul className="space-y-1 text-sm text-gray-600">
-                    <li className="flex items-start space-x-2">
-                      <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full mt-2 flex-shrink-0" />
-                      <span>Verify employment status within 10 days of closing</span>
-                    </li>
-                    <li className="flex items-start space-x-2">
-                      <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full mt-2 flex-shrink-0" />
-                      <span>Obtain updated bank statements showing sufficient reserves</span>
-                    </li>
-                  </ul>
+              <CardContent className="space-y-4">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-gray-900">{metric.value}</div>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Comments</label>
+                  <Textarea
+                    placeholder="Add comments or notes about this metric..."
+                    value={comments[metric.id] || ''}
+                    onChange={(e) => handleCommentChange(metric.id, e.target.value)}
+                    className="min-h-[80px] resize-none"
+                  />
                 </div>
               </CardContent>
             </Card>
+          ))}
+        </div>
 
-            {/* Extracted Financials */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Extracted Financial Information</CardTitle>
-                <CardDescription>Key data points from document analysis</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {Object.entries(financialData).map(([key, value]) => (
-                    <div key={key} className="bg-gray-50 rounded-lg p-3">
-                      <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                        {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                      </div>
-                      <div className="text-sm font-semibold text-gray-900">{value}</div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Monthly Obligations */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Monthly Obligations Breakdown</CardTitle>
-                <CardDescription>Detailed analysis of borrower's existing debts</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-hidden border rounded-lg">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Obligation Type
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Monthly Payment
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Outstanding Balance
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {obligations.map((obligation, index) => (
-                        <tr key={index}>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {obligation.type}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                            {obligation.amount}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                            {obligation.balance}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-900">Total Monthly Obligations:</span>
-                    <span className="text-lg font-bold text-blue-600">$3,200</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar Actions */}
-          <div className="space-y-6">
-            {/* Actions Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Next Steps</CardTitle>
-                <CardDescription>Available actions and workflows</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button className="w-full" onClick={() => setShowCheckerMode(true)}>
-                  <Clock className="w-4 h-4 mr-2" />
-                  Send to Checker
-                </Button>
-                <Button variant="outline" className="w-full">
-                  <Download className="w-4 h-4 mr-2" />
-                  Download Report
-                </Button>
-                <Button variant="outline" className="w-full">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Export to LOS
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Risk Assessment */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Risk Assessment</CardTitle>
-                <CardDescription>Overall risk profile summary</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Credit Risk</span>
-                    <Badge className="bg-green-100 text-green-800">Low</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Income Risk</span>
-                    <Badge className="bg-green-100 text-green-800">Low</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Collateral Risk</span>
-                    <Badge className="bg-yellow-100 text-yellow-800">Medium</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Overall Risk</span>
-                    <Badge className="bg-green-100 text-green-800">Low</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Processing Time */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Processing Metrics</CardTitle>
-                <CardDescription>Analysis performance details</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Total Time</span>
-                    <span className="text-sm font-medium">2m 15s</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Documents Processed</span>
-                    <span className="text-sm font-medium">{data.documents.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Data Points Extracted</span>
-                    <span className="text-sm font-medium">47</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Manual Review Required</span>
-                    <span className="text-sm font-medium text-yellow-600">2 items</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        {/* Action Buttons */}
+        <div className="flex justify-center space-x-4">
+          <Button onClick={() => setShowCheckerMode(true)} size="lg">
+            Send to Checker
+          </Button>
+          <Button variant="outline" size="lg">
+            <Download className="w-4 h-4 mr-2" />
+            Download Report
+          </Button>
+          <Button variant="outline" size="lg">
+            <FileText className="w-4 h-4 mr-2" />
+            Export to LOS
+          </Button>
         </div>
       </div>
     </div>
