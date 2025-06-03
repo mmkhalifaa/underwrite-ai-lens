@@ -5,12 +5,13 @@ import { Separator } from '@/components/ui/separator';
 import { CheckCircle, Download, FileText, AlertTriangle, ArrowLeft, Clock } from 'lucide-react';
 import { useState } from 'react';
 import CheckerMode from './CheckerMode';
+import { CategorizedDocument } from './SmartDocumentUpload';
 
 interface FinalSummaryProps {
   data: {
     productType: string;
     incomeTypes: string[];
-    documents: string[];
+    documents: CategorizedDocument[];
   };
   onBack: () => void;
 }
@@ -22,7 +23,7 @@ const FinalSummary = ({ data, onBack }: FinalSummaryProps) => {
   const checkerModeData = {
     productType: data.productType,
     riskLevel: data.incomeTypes.join(', '), // Convert incomeTypes array to string for backward compatibility
-    documents: data.documents
+    documents: data.documents.map(doc => doc.file.name) // Convert CategorizedDocument[] to string[] for CheckerMode
   };
 
   if (showCheckerMode) {
@@ -255,7 +256,7 @@ const FinalSummary = ({ data, onBack }: FinalSummaryProps) => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Documents Processed</span>
-                    <span className="text-sm font-medium">6</span>
+                    <span className="text-sm font-medium">{data.documents.length}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Data Points Extracted</span>
