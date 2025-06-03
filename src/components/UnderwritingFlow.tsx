@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,12 +10,13 @@ import UnderwritingStep from './UnderwritingStep';
 import ExplainabilityPanel from './ExplainabilityPanel';
 import FinalSummary from './FinalSummary';
 import DocumentViewer from './DocumentViewer';
+import { CategorizedDocument } from './SmartDocumentUpload';
 
 interface UnderwritingFlowProps {
   data: {
     productType: string;
     incomeTypes: string[];
-    documents: Array<{ file: File; category: string; id: string }>;
+    documents: CategorizedDocument[];
   };
   onBack: () => void;
 }
