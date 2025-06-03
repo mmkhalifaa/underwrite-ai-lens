@@ -111,6 +111,10 @@ const DocumentViewer = ({ stepId, isOpen, onClose }: DocumentViewerProps) => {
   const handleZoomIn = () => setZoomLevel(prev => Math.min(prev + 25, 200));
   const handleZoomOut = () => setZoomLevel(prev => Math.max(prev - 25, 50));
 
+  const handleVerificationChange = (checked: boolean | "indeterminate") => {
+    setIsVerified(checked === true);
+  };
+
   return (
     <div className={`fixed inset-y-0 right-0 z-50 bg-white border-l shadow-xl transition-all duration-300 ${
       isFullscreen ? 'inset-x-0' : 'w-1/2 min-w-[600px]'
@@ -234,7 +238,7 @@ const DocumentViewer = ({ stepId, isOpen, onClose }: DocumentViewerProps) => {
                   <Checkbox 
                     id="verify"
                     checked={isVerified}
-                    onCheckedChange={setIsVerified}
+                    onCheckedChange={handleVerificationChange}
                   />
                   <label htmlFor="verify" className="text-sm font-medium">
                     Verify Extraction
