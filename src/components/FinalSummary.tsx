@@ -10,7 +10,7 @@ import CheckerMode from './CheckerMode';
 interface FinalSummaryProps {
   data: {
     productType: string;
-    riskLevel: string;
+    incomeTypes: string[];
     documents: string[];
   };
   onBack: () => void;

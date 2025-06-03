@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +13,7 @@ import DocumentViewer from './DocumentViewer';
 interface UnderwritingFlowProps {
   data: {
     productType: string;
-    riskLevel: string;
+    incomeTypes: string[];
     documents: string[];
   };
   onBack: () => void;
@@ -143,7 +142,7 @@ const UnderwritingFlow = ({ data, onBack }: UnderwritingFlowProps) => {
               <Separator orientation="vertical" className="h-6" />
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">Underwriting in Progress</h1>
-                <p className="text-sm text-gray-500">{data.productType} • {data.riskLevel} Risk</p>
+                <p className="text-sm text-gray-500">{data.productType} • {data.incomeTypes.join(', ')}</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
