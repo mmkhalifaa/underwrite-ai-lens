@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
 import { CheckCircle, Download, FileText, ArrowLeft, Calculator } from 'lucide-react';
 import { useState } from 'react';
 import CheckerMode from './CheckerMode';
@@ -20,16 +19,6 @@ interface FinalSummaryProps {
 
 const FinalSummary = ({ data, onBack }: FinalSummaryProps) => {
   const [showCheckerMode, setShowCheckerMode] = useState(false);
-  const [comments, setComments] = useState<{ [key: string]: string }>({
-    dti: '',
-    liquidity: '',
-    leverage: '',
-    monthlyIncome: '',
-    liquidAssets: '',
-    totalAssets: '',
-    totalLiabilities: '',
-    netWorth: ''
-  });
 
   // Create compatible data structure for CheckerMode
   const checkerModeData = {
@@ -54,56 +43,64 @@ const FinalSummary = ({ data, onBack }: FinalSummaryProps) => {
       label: 'Debt-to-Income Ratio (DTI)',
       value: '28.5%',
       status: 'good',
-      description: 'Total monthly debt payments divided by gross monthly income'
+      description: 'Total monthly debt payments divided by gross monthly income',
+      criteria: 'The calculated DTI is within the policy recommended range (<55%)'
     },
     {
       id: 'liquidity',
       label: 'Liquidity Ratio',
       value: '6.2 months',
       status: 'good',
-      description: 'Liquid assets available to cover monthly obligations'
+      description: 'Liquid assets available to cover monthly obligations',
+      criteria: 'Liquid assets cover minimum 6 months of monthly obligations as required by policy'
     },
     {
       id: 'leverage',
       label: 'Leverage Ratio',
       value: '3.2:1',
       status: 'moderate',
-      description: 'Total debt to net worth ratio'
+      description: 'Total debt to net worth ratio',
+      criteria: 'Leverage ratio is within acceptable range (≤5:1) per underwriting guidelines'
     },
     {
       id: 'monthlyIncome',
       label: 'Monthly Income',
       value: '$18,500',
       status: 'good',
-      description: 'Verified gross monthly income from all sources'
+      description: 'Verified gross monthly income from all sources',
+      criteria: 'Income meets minimum threshold ($15,000/month) and is properly documented'
     },
     {
       id: 'liquidAssets',
       label: 'Liquid Assets',
       value: '$114,700',
       status: 'good',
-      description: 'Cash and easily convertible assets'
+      description: 'Cash and easily convertible assets',
+      criteria: 'Liquid assets exceed minimum requirement (≥$100,000) for this loan amount'
     },
     {
       id: 'totalAssets',
       label: 'Total Assets',
       value: '$1,580,000',
       status: 'good',
-      description: 'Sum of all reported assets'
+      description: 'Sum of all reported assets',
+      criteria: 'Total assets are sufficient to support loan amount and demonstrate financial capacity'
     },
     {
       id: 'totalLiabilities',
       label: 'Total Liabilities',
       value: '$333,000',
       status: 'good',
-      description: 'Sum of all reported debts and obligations'
+      description: 'Sum of all reported debts and obligations',
+      criteria: 'Total liabilities are reasonable relative to assets and income capacity'
     },
     {
       id: 'netWorth',
       label: 'Net Worth',
       value: '$1,247,000',
       status: 'good',
-      description: 'Total assets minus total liabilities'
+      description: 'Total assets minus total liabilities',
+      criteria: 'Net worth exceeds minimum requirement (≥$1,000,000) for this product type'
     }
   ];
 
@@ -118,13 +115,6 @@ const FinalSummary = ({ data, onBack }: FinalSummaryProps) => {
       default:
         return 'bg-gray-100 text-gray-800';
     }
-  };
-
-  const handleCommentChange = (metricId: string, value: string) => {
-    setComments(prev => ({
-      ...prev,
-      [metricId]: value
-    }));
   };
 
   return (
@@ -195,13 +185,10 @@ const FinalSummary = ({ data, onBack }: FinalSummaryProps) => {
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Comments</label>
-                  <Textarea
-                    placeholder="Add comments or notes about this metric..."
-                    value={comments[metric.id] || ''}
-                    onChange={(e) => handleCommentChange(metric.id, e.target.value)}
-                    className="min-h-[80px] resize-none"
-                  />
+                  <label className="text-sm font-medium text-gray-700">Policy Criteria</label>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p className="text-sm text-blue-800">{metric.criteria}</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
