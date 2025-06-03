@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,10 +18,17 @@ interface FinalSummaryProps {
 const FinalSummary = ({ data, onBack }: FinalSummaryProps) => {
   const [showCheckerMode, setShowCheckerMode] = useState(false);
 
+  // Create compatible data structure for CheckerMode
+  const checkerModeData = {
+    productType: data.productType,
+    riskLevel: data.incomeTypes.join(', '), // Convert incomeTypes array to string for backward compatibility
+    documents: data.documents
+  };
+
   if (showCheckerMode) {
     return (
       <CheckerMode 
-        data={data} 
+        data={checkerModeData} 
         onBack={() => setShowCheckerMode(false)} 
         onComplete={onBack}
       />
